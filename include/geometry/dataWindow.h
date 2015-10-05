@@ -1,45 +1,33 @@
 #pragma once
 
-#include <string>
 #include <iostream>
 #include <Eigen/Dense>
-#include <stdlib.h>
 
-using namespace Eigen;
-using namespace std;
-
-template<class T>
+template<typename T>
 class DataWindow {
   public:
-    DataWindow (T* _basePtr, unsigned int _columns, unsigned int _rows);
-    T& operator() (unsigned int _col, unsigned int _row);
-    const string displayMatrix();
+    DataWindow (T* basePtr = nullptr,
+		unsigned int columns = 0,
+		unsigned int rows = 0
+	        ) :
+		_basePtr(basePtr),
+		_cols(columns),
+		_rows(rows) 
+		{};
+		
+    T& operator() (unsigned int col, unsigned int row) 
+      {
+        // Column-major memory layout per Eigen.  
+	return _basePtr[row * _cols + col];
+      }
+    
+    void displayMatrix() 
+      {
+	std::cout << Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> >(_basePtr, _rows, _cols).colwise().reverse();
+      }
+
   private:
-    T*           __basePtr;
-    unsigned int __cols;
-    unsigned int __rows;
+    T *const           _basePtr;
+    const unsigned int _cols;
+    const unsigned int _rows;
 };
-
-// Column-major data window, as per both Eigen and Visit.
-
-template<class T>
-DataWindow<T>::DataWindow (T* _basePtr, unsigned int _columns, unsigned int _rows) :
-    __basePtr (_basePtr),
-    __cols (_columns),
-    __rows (_rows) {};
-
-template<class T>
-T& DataWindow<T>::operator() (unsigned int _col, unsigned int _row) {
-	if (_row * __cols + _col < __cols * __rows )
-		return __basePtr[_row * __cols + _col];
-	else {
-		cout << "Out of bounds" << endl;
-		exit(-1);
-	}
-}
-
-template<class T>
-const string DataWindow<T>::displayMatrix() {
-  std::cout << Eigen::Map<Matrix<T, Dynamic, Dynamic, RowMajor> >(__basePtr, __rows, __cols).colwise().reverse();
-  return "";
-}
