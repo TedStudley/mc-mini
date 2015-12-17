@@ -32,8 +32,8 @@ using namespace std;
 // Update the forcing terms
 // T -> F
 void ProblemStructure::updateForcingTerms() {
-  DataWindow<double> uForcingWindow (geometry.getUForcingData(), N - 1, M);
-  DataWindow<double> vForcingWindow (geometry.getVForcingData(), N, M - 1);
+  DataWindow<double> uForcingWindow (geometry.getUForcingData(), M, N - 1);
+  DataWindow<double> vForcingWindow (geometry.getVForcingData(), M - 1, N);
 
   #ifdef DEBUG
     cout << "<Calculating forcing model using \"" << forcingModel << "\">" << endl;
@@ -43,34 +43,34 @@ void ProblemStructure::updateForcingTerms() {
     // Benchmark taken from Tau (1991; JCP Vol. 99)
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N - 1; ++j)
-        uForcingWindow (j, i) = 3 * cos ((j + 1) * h) * sin ((i + 0.5) * h);
+        uForcingWindow (i, j) = 3 * cos ((j + 1) * h) * sin ((i + 0.5) * h);
 
     for (int i = 0; i < M - 1; ++i)
       for (int j = 0; j < N; ++j)
-        vForcingWindow (j, i) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
+        vForcingWindow (i, j) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
 
   } else if (forcingModel == "solCXBenchmark" ||
              forcingModel == "solKZBenchmark") {
     // solCX Benchmark taken from Kronbichler et al. (2011)
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N - 1; ++j)
-        uForcingWindow (j, i) = 0;
+        uForcingWindow (i, j) = 0;
 
     for (int i = 0; i < M - 1; ++i)
       for (int j = 0; j < N; ++j)
-        vForcingWindow (j, i) = - sin((i + 0.5) * pi * h) * cos ((j + 1) * pi * h);
+        vForcingWindow (i, j) = - sin((i + 0.5) * pi * h) * cos ((j + 1) * pi * h);
 
   } else if (forcingModel == "vorticalFlow") {
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < (N - 1); j++)
-        uForcingWindow (j, i) = cos ((j + 1) * h) * sin ((i + 0.5) * h);
+        uForcingWindow (i, j) = cos ((j + 1) * h) * sin ((i + 0.5) * h);
 
     for (int i = 0; i < (M - 1); ++i)
       for (int j = 0; j < N; ++j)
-        vForcingWindow (j, i) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
+        vForcingWindow (i, j) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
 
   } else if (forcingModel == "buoyancy") {
-    DataWindow<double> temperatureWindow (geometry.getTemperatureData(), N, M);
+    DataWindow<double> temperatureWindow (geometry.getTemperatureData(), M, N);
 
     double referenceTemperature;
     double densityConstant;
@@ -88,14 +88,14 @@ void ProblemStructure::updateForcingTerms() {
 
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < (N - 1); ++j)
-        uForcingWindow (j, i) = 0;
+        uForcingWindow (i, j) = 0;
 
     for (int i = 0; i < (M - 1); ++i)
       for (int j = 0; j < N; ++j) {
-        vForcingWindow (j, i) =  -1 * densityConstant *
+        vForcingWindow (i, j) =  -1 * densityConstant *
                                   (1 - thermalExpansion *
-                                   ((temperatureWindow (j, i) +
-                                     temperatureWindow (j, i + 1)) / 2 -
+                                   ((temperatureWindow (i, j) +
+                                     temperatureWindow (i + 1, j)) / 2 -
                                       referenceTemperature));
       }
   } else {
@@ -104,9 +104,9 @@ void ProblemStructure::updateForcingTerms() {
 
   #ifdef DEBUG
     cout << "<U Forcing Data>" << endl;
-    cout << uForcingWindow.displayMatrix() << endl;
+    uForcingWindow.displayMatrix();
     cout << "<V Forcing Data>" << endl;
-    cout << vForcingWindow.displayMatrix() << endl << endl;
+    vForcingWindow.displayMatrix();
   #endif
 }
 
@@ -164,11 +164,11 @@ void ProblemStructure::solveStokes() {
 #ifdef DEBUG
   cout << "<Calculated Stokes Equation Solutions>" << endl;
   cout << "<U Velocity Data>" << endl;
-  cout << DataWindow<double> (geometry.getUVelocityData(), N - 1, M).displayMatrix() << endl;
+  DataWindow<double> (geometry.getUVelocityData(), M, N - 1).displayMatrix();
   cout << "<V Velocity Data>" << endl;
-  cout << DataWindow<double> (geometry.getVVelocityData(), N, M - 1).displayMatrix() << endl;
+  DataWindow<double> (geometry.getVVelocityData(), M - 1, N).displayMatrix();
   cout << "<Pressure Data>" << endl;
-  cout << DataWindow<double> (geometry.getPressureData(), N, M).displayMatrix() << endl << endl;
+  DataWindow<double> (geometry.getPressureData(), M, N).displayMatrix();
 #endif
 }
 

@@ -36,7 +36,7 @@ void ProblemStructure::initializeTimestep() {
 }
 
 void ProblemStructure::initializeTemperature() {
-  DataWindow<double> temperatureWindow (geometry.getTemperatureData(), N, M);
+  DataWindow<double> temperatureWindow (geometry.getTemperatureData(), M, N);
 
   double referenceTemperature;
   double temperatureScale;
@@ -55,7 +55,7 @@ void ProblemStructure::initializeTemperature() {
 
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N; ++j)
-        temperatureWindow (j, i) = referenceTemperature;
+        temperatureWindow (i, j) = referenceTemperature;
 
   } else if (temperatureModel == "sineWave") {
     int xModes;
@@ -74,7 +74,7 @@ void ProblemStructure::initializeTemperature() {
 
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N; ++j)
-        temperatureWindow (j, i) = referenceTemperature +
+        temperatureWindow (i, j) = referenceTemperature +
                                    sin ((i + 0.5) * h * xModes * pi / xExtent) *
                                    sin ((j + 0.5) * h * yModes * pi / yExtent) *
                                    temperatureScale;
@@ -83,9 +83,9 @@ void ProblemStructure::initializeTemperature() {
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N; ++j) {
         if ((M / 4 < j && j < 3 * M / 4) && (N / 4 < i && i < 3 * N / 4))
-          temperatureWindow (j, i) = referenceTemperature + temperatureScale;
+          temperatureWindow (i, j) = referenceTemperature + temperatureScale;
         else
-          temperatureWindow (j, i) = referenceTemperature;
+          temperatureWindow (i, j) = referenceTemperature;
       }
   } else if (temperatureModel == "circle") {
      double center_x;
@@ -104,9 +104,9 @@ void ProblemStructure::initializeTemperature() {
      for (int i = 0; i < M; ++i)
        for (int j= 0; j < N; ++j) {
          if ( std::sqrt(std::pow((i*h+h/2)-(center_y),2.0) + std::pow((j*h+h/2)-(center_x),2.0))  < radius )
-           temperatureWindow (j, i) = referenceTemperature + temperatureScale;
+           temperatureWindow (i, j) = referenceTemperature + temperatureScale;
          else
-           temperatureWindow (j, i) = referenceTemperature;
+           temperatureWindow (i, j) = referenceTemperature;
        }
   } else {
     throw std::invalid_argument("<Unexpected temperature model: \"" + temperatureModel + "\" : Shutting down now>");
@@ -115,12 +115,12 @@ void ProblemStructure::initializeTemperature() {
   #ifdef DEBUG
     cout << "<Initialized temperature model as: \"" << temperatureModel << "\">" << endl;
     cout << "<Temperature Data>" << endl;
-    cout << temperatureWindow.displayMatrix() << endl << endl;
+    temperatureWindow.displayMatrix();
   #endif
 }
 
 void ProblemStructure::initializeTemperatureBoundary() {
-  DataWindow<double> temperatureBoundaryWindow (geometry.getTemperatureBoundaryData(), N, 2);
+  DataWindow<double> temperatureBoundaryWindow (geometry.getTemperatureBoundaryData(), 2, N);
 
   double upperTemperature;
   double lowerTemperature;
@@ -137,32 +137,32 @@ void ProblemStructure::initializeTemperatureBoundary() {
   }
 
   for (int j = 0; j < N; ++j) {
-    temperatureBoundaryWindow (j, 0) = lowerTemperature;
-    temperatureBoundaryWindow (j, 1) = upperTemperature;
+    temperatureBoundaryWindow (0, j) = lowerTemperature;
+    temperatureBoundaryWindow (1, j) = upperTemperature;
   }
 }
 
 void ProblemStructure::initializeVelocityBoundary() {
-  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), 2, M);
-  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), N, 2);
+  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), M, 2);
+  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), 2, N);
 
 
   if (boundaryModel == "tauBenchmark") {
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < 2; ++j)
-        uVelocityBoundaryWindow (j, i) = cos (j * N * h) * sin ((i + 0.5) * h);
+        uVelocityBoundaryWindow (i, j) = cos (j * N * h) * sin ((i + 0.5) * h);
     for (int i = 0; i < 2; ++i)
       for (int j = 0; j < N; ++j)
-        vVelocityBoundaryWindow (j, i) = -sin ((j + 0.5) * h) * cos (i * M * h);
+        vVelocityBoundaryWindow (i, j) = -sin ((j + 0.5) * h) * cos (i * M * h);
   } else if (boundaryModel == "solCXBenchmark" ||
              boundaryModel == "solKZBenchmark" ||
              boundaryModel == "noFlux") {
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < 2; ++j)
-        uVelocityBoundaryWindow (j, i) = 0;
+        uVelocityBoundaryWindow (i, j) = 0;
     for (int i = 0; i < 2; ++i)
       for (int j = 0; j < N; ++j)
-        vVelocityBoundaryWindow (j, i) = 0;
+        vVelocityBoundaryWindow (i, j) = 0;
   } else {
     throw std::invalid_argument("<Unexpected boundary model: \"" + boundaryModel + "\" : Shutting down now>");
   }
@@ -170,14 +170,14 @@ void ProblemStructure::initializeVelocityBoundary() {
   #ifdef DEBUG
     cout << "<Initialized boundary model as: \"" << boundaryModel << "\">" << endl;
     cout << "<U Velocity Boundary Data>" << endl;
-    cout << uVelocityBoundaryWindow.displayMatrix() << endl;
+    uVelocityBoundaryWindow.displayMatrix();
     cout << "<V Velocity Boundary Data>" << endl;
-    cout << vVelocityBoundaryWindow.displayMatrix() << endl << endl;
+    vVelocityBoundaryWindow.displayMatrix();
   #endif
 }
 
 void ProblemStructure::initializeViscosity() {
-  DataWindow<double> viscosityWindow (geometry.getViscosityData(), N + 1, M + 1);
+  DataWindow<double> viscosityWindow (geometry.getViscosityData(), M + 1, N + 1);
 
   double viscosity;
 
@@ -195,17 +195,17 @@ void ProblemStructure::initializeViscosity() {
 
     for (int i = 0; i < (M + 1); ++i)
       for (int j = 0; j < (N + 1); ++j)
-        viscosityWindow (j, i) = viscosity;
+        viscosityWindow (i, j) = viscosity;
   } else if (viscosityModel == "tauBenchmark") {
     viscosity = 1.0;
   } else if (viscosityModel == "solCXBenchmark") {
     for (int i = 0; i < (M + 1); ++i)
       for (int j = 0; j < (N + 1); ++j)
-        viscosityWindow (j, i) = (j <= N / 2) ? 1.0 : 1.0E06;
+        viscosityWindow (i, j) = (j <= N / 2) ? 1.0 : 1.0E06;
   } else if (viscosityModel == "solKZBenchmark") {
     for (int i = 0; i < (M + 1); ++i)
       for (int j = 0; j < (N + 1); ++j)
-        viscosityWindow (j, i) = 1.0 + j * h * 1.0E06;
+        viscosityWindow (i, j) = 1.0 + j * h * 1.0E06;
   } else {
     throw std::invalid_argument("Unexpected viscosity model: \"" + viscosityModel + "\" : Shutting down now!");
   }
@@ -213,6 +213,6 @@ void ProblemStructure::initializeViscosity() {
   #ifdef DEBUG
     cout << "<Viscosity model initialized as: \"" << viscosityModel << "\">" << endl;
     cout << "<Viscosity Data>" << endl;
-    cout << viscosityWindow.displayMatrix() << endl << endl;
+    viscosityWindow.displayMatrix();
   #endif
 }

@@ -130,21 +130,21 @@ void OutputStructure::writeHDF5File (const int timestep) {
 
   // Write U Velocity
   static double * interpolatedUVelocityData = new double [M * N];
-  static DataWindow<double> interpolatedUVelocityWindow (interpolatedUVelocityData, N, M);
-  static DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), 2, M);
-  static DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), N - 1, M);
+  static DataWindow<double> interpolatedUVelocityWindow (interpolatedUVelocityData, M, N);
+  static DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), M, 2);
+  static DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), M, N - 1);
 
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < N; ++j) {
       if (j == 0) {
-        interpolatedUVelocityWindow (j, i) = (uVelocityBoundaryWindow (0, i) +
-                                              uVelocityWindow (0, i)) / 2;
+        interpolatedUVelocityWindow (i, j) = (uVelocityBoundaryWindow (i, 0) +
+                                              uVelocityWindow (i, 0)) / 2;
       } else if (j == (N - 1)) {
-        interpolatedUVelocityWindow (j, i) = (uVelocityWindow (N - 2, i) +
-                                              uVelocityBoundaryWindow (1, i)) / 2;
+        interpolatedUVelocityWindow (i, j) = (uVelocityWindow (i, N - 2) +
+                                              uVelocityBoundaryWindow (i, 1)) / 2;
       } else {
-        interpolatedUVelocityWindow (j, i) = (uVelocityWindow (j - 1, i) +
-                                              uVelocityWindow (j, i)) / 2;
+        interpolatedUVelocityWindow (i, j) = (uVelocityWindow (i, j - 1) +
+                                              uVelocityWindow (i, j)) / 2;
       }
     }
   }
@@ -167,21 +167,21 @@ void OutputStructure::writeHDF5File (const int timestep) {
 
   // Write V Velocity
   static double * interpolatedVVelocityData = new double [M * N];
-  static DataWindow<double> interpolatedVVelocityWindow (interpolatedVVelocityData, N, M);
-  static DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), N, 2);
-  static DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), N, M - 1);
+  static DataWindow<double> interpolatedVVelocityWindow (interpolatedVVelocityData, M, N);
+  static DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), 2, N);
+  static DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), M - 1, N);
 
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < N; ++j) {
       if (i == 0) {
-        interpolatedVVelocityWindow (j, i) = (vVelocityBoundaryWindow (j, 0) +
-                                              vVelocityWindow (j, 0)) / 2;
+        interpolatedVVelocityWindow (i, j) = (vVelocityBoundaryWindow (0, j) +
+                                              vVelocityWindow (0, j)) / 2;
       } else if (i == (M - 1)) {
-        interpolatedVVelocityWindow (j, i) = (vVelocityWindow (j, M - 2) +
-                                              vVelocityBoundaryWindow (j, 1)) / 2;
+        interpolatedVVelocityWindow (i, j) = (vVelocityWindow (M - 2, j) +
+                                              vVelocityBoundaryWindow (1, j)) / 2;
       } else {
-        interpolatedVVelocityWindow (j, i) = (vVelocityWindow (j, i - 1) +
-                                              vVelocityWindow (j, i)) / 2;
+        interpolatedVVelocityWindow (i, j) = (vVelocityWindow (i - 1, j) +
+                                              vVelocityWindow (i, j)) / 2;
       }
     }
   }
@@ -203,29 +203,29 @@ void OutputStructure::writeHDF5File (const int timestep) {
                   << "        </Attribute>" << endl;
 
   static double * velocityDivergenceData = new double[M * N];
-  static DataWindow<double> velocityDivergenceWindow (velocityDivergenceData, N, M);
+  static DataWindow<double> velocityDivergenceWindow (velocityDivergenceData, M, N);
 
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < N; ++j) {
       double uDivergence, vDivergence;
 
       if (i == 0) {
-        vDivergence = (vVelocityBoundaryWindow (j, 0) - vVelocityWindow (j, 0)) / dx;
+        vDivergence = (vVelocityBoundaryWindow (0, j) - vVelocityWindow (0, j)) / dx;
       } else if (i == (M - 1)) {
-        vDivergence = (vVelocityWindow (j, M - 2) - vVelocityBoundaryWindow (j, 1)) / dx;
+        vDivergence = (vVelocityWindow (M - 2, j) - vVelocityBoundaryWindow (1, j)) / dx;
       } else {
-        vDivergence = (vVelocityWindow (j, i - 1) - vVelocityWindow (j, i)) / dx;
+        vDivergence = (vVelocityWindow (i - 1, j) - vVelocityWindow (i, j)) / dx;
       }
 
       if (j == 0) {
-        uDivergence = (uVelocityBoundaryWindow (0, i) - uVelocityWindow (0, i)) / dx;
+        uDivergence = (uVelocityBoundaryWindow (i, 0) - uVelocityWindow (i, 0)) / dx;
       } else if (j == (N - 1)) {
-        uDivergence = (uVelocityWindow (N - 2, i) - uVelocityBoundaryWindow (1, i)) / dx;
+        uDivergence = (uVelocityWindow (i, N - 2) - uVelocityBoundaryWindow (i, 1)) / dx;
       } else {
-        uDivergence = (uVelocityWindow (j - 1, i) - uVelocityWindow (j, i)) / dx;
+        uDivergence = (uVelocityWindow (i, j - 1) - uVelocityWindow (i, j)) / dx;
       }
 
-      velocityDivergenceWindow (j, i) = uDivergence + vDivergence;
+      velocityDivergenceWindow (i, j) = uDivergence + vDivergence;
     }
   }
 

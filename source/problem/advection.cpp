@@ -21,10 +21,10 @@ void ProblemStructure::upwindMethod() {
   Map<VectorXd> temperatureVector (geometry.getTemperatureData(), M * N);
   Map<VectorXd> temperatureBoundaryVector (geometry.getTemperatureBoundaryData(), 2 * M);
 
-  DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), N - 1, M);
-  DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), N, M - 1);
-  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), 2, M);
-  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), N, 2);
+  DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), M, N - 1);
+  DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), M - 1, N);
+  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), M, 2);
+  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), 2, N);
 
   double leftVelocity, rightVelocity, bottomVelocity, topVelocity;
   double leftFlux, rightFlux, bottomFlux, topFlux;
@@ -35,17 +35,17 @@ void ProblemStructure::upwindMethod() {
     for (int j = 0; j <  N; ++j) {
       // Find all four edge velocities for the current cell.
       leftVelocity   = (j == 0) ?
-                        uVelocityBoundaryWindow (0, i) :
-                        uVelocityWindow (j - 1, i);
+                        uVelocityBoundaryWindow (i, 0) :
+                        uVelocityWindow (i, j - 1);
       rightVelocity  = (j == (N - 1)) ?
-                        uVelocityBoundaryWindow (1, i) :
-                        uVelocityWindow (j, i);
+                        uVelocityBoundaryWindow (i, 1) :
+                        uVelocityWindow (i, j);
       bottomVelocity = (i == 0) ?
-                        vVelocityBoundaryWindow (j, 0) :
-                        vVelocityWindow (j, i - 1);
+                        vVelocityBoundaryWindow (0, j) :
+                        vVelocityWindow (i - 1, j);
       topVelocity    = (i == (M - 1)) ?
-                        vVelocityBoundaryWindow (j, 1) :
-                        vVelocityWindow (j, i);
+                        vVelocityBoundaryWindow (1, j) :
+                        vVelocityWindow (i, j);
 
       leftFlux = rightFlux = 0;
       topFlux = bottomFlux = 0;
@@ -96,57 +96,57 @@ void ProblemStructure::laxWendroff() {
 
 void ProblemStructure::frommMethod() {
   // Temperature data (MxN cell-centered grid)
-  DataWindow<double> temperatureWindow (geometry.getTemperatureData(), N, M);
+  DataWindow<double> temperatureWindow (geometry.getTemperatureData(), M, N);
   // Temperature boundary data (2xN transverse boundary grid)
-  DataWindow<double> temperatureBoundaryWindow (geometry.getTemperatureBoundaryData(), N, 2);
-
+  DataWindow<double> temperatureBoundaryWindow (geometry.getTemperatureBoundaryData(), 2, N);
+//
   // U Velocity Data (Mx(N-1) lateral offset grid)
-  DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), N - 1, M);
+  DataWindow<double> uVelocityWindow (geometry.getUVelocityData(), M, N - 1);
   // V Velocity Data ((M-1)xN transverse offset grid)
-  DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), N, M - 1);
+  DataWindow<double> vVelocityWindow (geometry.getVVelocityData(), M - 1, N);
 
   // U Velocity Boundary Data (Mx2 lateral boundary grid)
-  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), 2, M);
+  DataWindow<double> uVelocityBoundaryWindow (geometry.getUVelocityBoundaryData(), M, 2);
   // V Velocity Boundary Data (2xN transverse boundary grid)
-  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), N, 2);
+  DataWindow<double> vVelocityBoundaryWindow (geometry.getVVelocityBoundaryData(), 2, N);
 
   // Initilize half-time data
   // Half-time temperature data (MxN cell-centered grid)
-  static DataWindow<double> halfTimeTemperatureWindow (new double[M * N], N, M);
+  static DataWindow<double> halfTimeTemperatureWindow (new double[M * N], M, N);
   // Half-time U-Offset temperature data (Mx(N-1) lateral offset grid)
-  static DataWindow<double> halfTimeUOffsetTemperatureWindow (new double[M * (N - 1)], N - 1, M);
+  static DataWindow<double> halfTimeUOffsetTemperatureWindow (new double[M * (N - 1)], M, N - 1);
   // Half-time V-offset temperature data ((M-1)xN transverse offset grid)
-  static DataWindow<double> halfTimeVOffsetTemperatureWindow (new double[(M - 1) * N], N, M - 1);
+  static DataWindow<double> halfTimeVOffsetTemperatureWindow (new double[(M - 1) * N], M - 1, N);
 
   // Half-time Forcing Data (for use in the Stokes solve)
   static double * halfTimeForcingData = new double[2 * M * N - M - N];
   // Half-time U forcing data (Mx(N-1) lateral offset grid)
   static double * halfTimeUForcingData = halfTimeForcingData;
-  static DataWindow<double> halfTimeUForcingWindow (halfTimeUForcingData, N - 1, M);
+  static DataWindow<double> halfTimeUForcingWindow (halfTimeUForcingData, M, N - 1);
   // Half-time V forcing data ((M-1)xN transverse offset grid)
   static double * halfTimeVForcingData = halfTimeForcingData + M * (N - 1);
-  static DataWindow<double> halfTimeVForcingWindow (halfTimeVForcingData, N, M - 1);
+  static DataWindow<double> halfTimeVForcingWindow (halfTimeVForcingData, M - 1, N);
 
   // Half-time Stokes solution data (for use in the Stokes solve)
   static double * halfTimeStokesSolnData = new double[3 * M * N - M - N];
   // Half-time U velocity data (Mx(N-1) lateral offset grid)
   static double * halfTimeUVelocityData = halfTimeStokesSolnData;
-  static DataWindow<double> halfTimeUVelocityWindow (halfTimeUVelocityData, N - 1, M);
+  static DataWindow<double> halfTimeUVelocityWindow (halfTimeUVelocityData, M, N - 1);
   // Half-time V velocity data ((M-1)xN transverse offset grid)
   static double * halfTimeVVelocityData = halfTimeStokesSolnData + M * (N - 1);
-  static DataWindow<double> halfTimeVVelocityWindow (halfTimeVVelocityData, N, M - 1);
+  static DataWindow<double> halfTimeVVelocityWindow (halfTimeVVelocityData, M - 1, N);
   // Half-time pressure data (MxN cell-centered grid) (not technically necessary)
   static double * halfTimePressureData = halfTimeStokesSolnData + 2 * M * N - M - N;
-  static DataWindow<double> halfTimePressureWindow (halfTimePressureData, N, M);
+  static DataWindow<double> halfTimePressureWindow (halfTimePressureData, M, N);
 
   // Cell-centered velocities
   static double * cellCenteredVelocityData = new double[2 * M * N];
   // Cell-centered U velocity (MxN cell-centered grid)
   static double * cellCenteredUVelocityData = cellCenteredVelocityData;
-  static DataWindow<double> cellCenteredUVelocityWindow (cellCenteredUVelocityData, N, M);
+  static DataWindow<double> cellCenteredUVelocityWindow (cellCenteredUVelocityData, M, N);
   // Cell-centered V velocity (MxN cell-centered grid)
   static double * cellCenteredVVelocityData = cellCenteredVelocityData + M * N;
-  static DataWindow<double> cellCenteredVVelocityWindow (cellCenteredVVelocityData, N, M);
+  static DataWindow<double> cellCenteredVVelocityWindow (cellCenteredVVelocityData, M, N);
 
   Map<VectorXd> halfTimeStokesSolnVector (halfTimeStokesSolnData, 3 * M * N - M - N);
   VectorXd temporaryTemperature = Map<VectorXd> (geometry.getTemperatureData(), N * M);
@@ -157,50 +157,50 @@ void ProblemStructure::frommMethod() {
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < N; ++j) {
       double leftVelocity   = (j == 0) ?
-                              uVelocityBoundaryWindow (0, i) :
-                              uVelocityWindow (j - 1, i);
+                              uVelocityBoundaryWindow (i, 0) :
+                              uVelocityWindow (i, j - 1);
       double rightVelocity  = (j == (N - 1)) ?
-                              uVelocityBoundaryWindow (1, i) :
-                              uVelocityWindow (j, i);
+                              uVelocityBoundaryWindow (i, 1) :
+                              uVelocityWindow (i, j);
       double bottomVelocity = (i == 0) ?
-                              vVelocityBoundaryWindow (j, 0) :
-                              vVelocityWindow (j, i - 1);
+                              vVelocityBoundaryWindow (0, j) :
+                              vVelocityWindow (i - 1, j);
       double topVelocity    = (i == (M - 1)) ?
-                              vVelocityBoundaryWindow (j, 1) :
-                              vVelocityWindow (j, i);
+                              vVelocityBoundaryWindow (1, j) :
+                              vVelocityWindow (i, j);
 
-      cellCenteredVVelocityWindow (j, i) = (topVelocity + bottomVelocity) / 2;
-      cellCenteredUVelocityWindow (j, i) = (leftVelocity + rightVelocity) / 2;
+      cellCenteredVVelocityWindow (i, j) = (topVelocity + bottomVelocity) / 2;
+      cellCenteredUVelocityWindow (i, j) = (leftVelocity + rightVelocity) / 2;
       // Check if the cell-centered velocity is machine-epsilon, and make it true zero if so.
-      if (abs (cellCenteredUVelocityWindow (j, i)) < 1E-10)
-        cellCenteredUVelocityWindow (j, i) = 0;
-      if (abs (cellCenteredVVelocityWindow (j, i)) < 1E-10)
-        cellCenteredVVelocityWindow (j, i) = 0;
+      if (abs (cellCenteredUVelocityWindow (i, j)) < 1E-10)
+        cellCenteredUVelocityWindow (i, j) = 0;
+      if (abs (cellCenteredVVelocityWindow (i, j)) < 1E-10)
+        cellCenteredVVelocityWindow (i, j) = 0;
     }
   }
 
   #ifdef DEBUG
     cout << "<Half-time Cell-Centered Velocities Calculated>" << std::endl;
     cout << "<Cell-Centered U Velocity>" << endl;
-    cout << cellCenteredUVelocityWindow.displayMatrix() << endl;
+    cellCenteredUVelocityWindow.displayMatrix();
     cout << "<Cell-Centered V Velocity>" << endl;
-    cout << cellCenteredVVelocityWindow.displayMatrix() << endl;
+    cellCenteredVVelocityWindow.displayMatrix();
   #endif
 
   // Calculate temperatures at half-time level
   // Calculate half-time U-offset temperatures (Mx(N-1) lateral offset grid)
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < (N - 1); ++j) {
-      halfTimeUOffsetTemperatureWindow (j, i) = 0;
+      halfTimeUOffsetTemperatureWindow (i, j) = 0;
       // Flag to show which Riemann Problem solution to use. We use a bitflag
       // for the riemmanFlag since the case where velocities do not share the
       // same sign is merely the average of the other two cases.
       int riemannFlag = 0b00;
-      if (cellCenteredUVelocityWindow (j,     i) >= 0 &&
-          cellCenteredUVelocityWindow (j + 1, i) >= 0) {
+      if (cellCenteredUVelocityWindow (i, j) >= 0 &&
+          cellCenteredUVelocityWindow (i, j + 1) >= 0) {
         riemannFlag = 0b01;
-      } else if (cellCenteredUVelocityWindow (j,     i) <= 0 &&
-                 cellCenteredUVelocityWindow (j + 1, i) <= 0) {
+      } else if (cellCenteredUVelocityWindow (i, j) <= 0 &&
+                 cellCenteredUVelocityWindow (i, j + 1) <= 0) {
         riemannFlag = 0b10;
       } else {
         riemannFlag = 0b11;
@@ -210,38 +210,38 @@ void ProblemStructure::frommMethod() {
       // neighboring cell.
       if (riemannFlag & 0b01) {
         if (j == 0) {
-          leftNeighborT = temperatureWindow (j, i);
+          leftNeighborT = temperatureWindow (i, j);
         } else {
-          leftNeighborT = temperatureWindow (j - 1, i);
+          leftNeighborT = temperatureWindow (i, j - 1);
         }
-        rightNeighborT = temperatureWindow (j + 1, i);
+        rightNeighborT = temperatureWindow (i, j + 1);
 
-        halfTimeUOffsetTemperatureWindow (j, i) +=
-            temperatureWindow (j, i) +
-              (h / 2 - deltaT / 2 * cellCenteredUVelocityWindow (j, i)) *
+        halfTimeUOffsetTemperatureWindow (i, j) +=
+            temperatureWindow (i, j) +
+              (h / 2 - deltaT / 2 * cellCenteredUVelocityWindow (i, j)) *
                 (rightNeighborT - leftNeighborT) / (2 * h);
       }
 
       // One or both velocities are negative. Take the flux from the right
       // neighboring cell.
       if (riemannFlag & 0b10) {
-        leftNeighborT = temperatureWindow (j, i);
+        leftNeighborT = temperatureWindow (i, j);
         if (j == (N - 2)) {
-          rightNeighborT = temperatureWindow (j + 1, i);
+          rightNeighborT = temperatureWindow (i, j + 1);
         } else {
-          rightNeighborT = temperatureWindow (j + 2, i);
+          rightNeighborT = temperatureWindow (i, j + 2);
         }
 
-        halfTimeUOffsetTemperatureWindow (j, i) +=
-            temperatureWindow (j + 1, i) -
-              (h / 2 + deltaT / 2 * cellCenteredUVelocityWindow (j + 1, i)) *
+        halfTimeUOffsetTemperatureWindow (i, j) +=
+            temperatureWindow (i, j + 1) -
+              (h / 2 + deltaT / 2 * cellCenteredUVelocityWindow (i, j + 1)) *
                 (rightNeighborT - leftNeighborT) / (2 * h);
 
       }
 
       // Velocities are in opposing directions. Take the average of the fluxes
       // from the left and right neighboring cells
-      if (riemannFlag == 0b11) halfTimeUOffsetTemperatureWindow (j, i) /= 2;
+      if (riemannFlag == 0b11) halfTimeUOffsetTemperatureWindow (i, j) /= 2;
 
     }
   }
@@ -249,24 +249,24 @@ void ProblemStructure::frommMethod() {
   #ifdef DEBUG
     cout << "<Half-Time Offset Temperatures>" << endl;
     cout << "<Half-Time U-Offset Temperature>" << endl;
-    cout << halfTimeUOffsetTemperatureWindow.displayMatrix() << endl;
+    halfTimeUOffsetTemperatureWindow.displayMatrix();
   #endif
 
   // Calculate half-time V-offset temperatures ((M-1)xN transverse offset grid)
   for (int i = 0; i < (M - 1); ++i) {
     for (int j = 0; j < N; ++j) {
-      halfTimeVOffsetTemperatureWindow (j, i) = 0;
+      halfTimeVOffsetTemperatureWindow (i, j) = 0;
       // Flag to show which Riemann Problem solution to use. We use a bitflag
       // for the riemannFlag since the case where velocities do not share the
       // same sign is merely the average of the other two cases.
       int riemannFlag = 0b00;
 
-      if (cellCenteredVVelocityWindow (j, i    ) >= 0 &&
-          cellCenteredVVelocityWindow (j, i + 1) >= 0) {
+      if (cellCenteredVVelocityWindow (i, j) >= 0 &&
+          cellCenteredVVelocityWindow (i + 1, j) >= 0) {
         // One or both velocities are positive
         riemannFlag = 0b01;
-      } else if (cellCenteredVVelocityWindow (j, i    ) <= 0 &&
-                 cellCenteredVVelocityWindow (j, i + 1) <= 0) {
+      } else if (cellCenteredVVelocityWindow (i, j) <= 0 &&
+                 cellCenteredVVelocityWindow (i + 1, j) <= 0) {
         // One or both velocities are negative
         riemannFlag = 0b10;
       } else {
@@ -277,16 +277,16 @@ void ProblemStructure::frommMethod() {
       // One or both velocities are positive. Take the flux from the bottom
       // neighboring cell
       if (riemannFlag & 0b01) {
-        bottomNeighborT = temperatureWindow (j, i + 1);
+        bottomNeighborT = temperatureWindow (i + 1, j);
         if (i == 0) {
-          topNeighborT = temperatureWindow (j, i);
+          topNeighborT = temperatureWindow (i, j);
         } else {
-          topNeighborT = temperatureWindow (j, i - 1);
+          topNeighborT = temperatureWindow (i - 1, j);
         }
 
-        halfTimeVOffsetTemperatureWindow (j, i) +=
-            temperatureWindow (j, i) -
-              (h / 2 + deltaT / 2 * cellCenteredVVelocityWindow (j, i)) *
+        halfTimeVOffsetTemperatureWindow (i, j) +=
+            temperatureWindow (i, j) -
+              (h / 2 + deltaT / 2 * cellCenteredVVelocityWindow (i, j)) *
                (topNeighborT - bottomNeighborT) / (2 * h);
       }
 
@@ -294,29 +294,29 @@ void ProblemStructure::frommMethod() {
       // neighboring cell
       if (riemannFlag & 0b10) {
         if (i == (M - 2)) {
-          bottomNeighborT = temperatureWindow (j, i + 1);
+          bottomNeighborT = temperatureWindow (i + 1, j);
         } else {
-          bottomNeighborT = temperatureWindow (j, i + 2);
+          bottomNeighborT = temperatureWindow (i + 2, j);
         }
-        topNeighborT = temperatureWindow (j, i);
+        topNeighborT = temperatureWindow (i, j);
 
-        halfTimeVOffsetTemperatureWindow (j, i) +=
-            temperatureWindow (j, i + 1) +
-              (h / 2 - deltaT / 2 * cellCenteredVVelocityWindow (j, i + 1)) *
+        halfTimeVOffsetTemperatureWindow (i, j) +=
+            temperatureWindow (i + 1, j) +
+              (h / 2 - deltaT / 2 * cellCenteredVVelocityWindow (i + 1, j)) *
                (topNeighborT - bottomNeighborT) / (2 * h);
       }
 
       // Velocities are in opposing directions. Take the average of the fluxes
       // from the left and right neighboring cells.
       if (riemannFlag == 0b11) {
-        halfTimeVOffsetTemperatureWindow (j, i) /= 2;
+        halfTimeVOffsetTemperatureWindow (i, j) /= 2;
       }
     }
   }
 
   #ifdef DEBUG
     cout << "<Half-Time V-Offset Temperature>" << endl;
-    cout << halfTimeVOffsetTemperatureWindow.displayMatrix() << endl << endl;
+    halfTimeVOffsetTemperatureWindow.displayMatrix();
   #endif
 
   double leftHalfTimeNeighborT, rightHalfTimeNeighborT,
@@ -326,42 +326,42 @@ void ProblemStructure::frommMethod() {
     for (int j = 0; j < N; ++j) {
       double diffusionWeight = 4;
       if (j == 0) {
-        leftHalfTimeNeighborT = temperatureWindow (j, i);
-        leftNeighborT         = temperatureWindow (j, i);
+        leftHalfTimeNeighborT = temperatureWindow (i, j);
+        leftNeighborT         = temperatureWindow (i, j);
         diffusionWeight = 3;
       } else {
-        leftHalfTimeNeighborT = halfTimeUOffsetTemperatureWindow (j - 1, i);
-        leftNeighborT         = temperatureWindow (j - 1, i);
+        leftHalfTimeNeighborT = halfTimeUOffsetTemperatureWindow (i, j - 1);
+        leftNeighborT         = temperatureWindow (i, j - 1);
       }
       if (j == (N - 1)) {
-        rightHalfTimeNeighborT = temperatureWindow (j, i);
-        rightNeighborT         = temperatureWindow (j, i);
+        rightHalfTimeNeighborT = temperatureWindow (i, j);
+        rightNeighborT         = temperatureWindow (i, j);
         diffusionWeight = 3;
       } else {
-        rightHalfTimeNeighborT = halfTimeUOffsetTemperatureWindow (j, i);
-        rightNeighborT         = temperatureWindow (j + 1, i);
+        rightHalfTimeNeighborT = halfTimeUOffsetTemperatureWindow (i, j);
+        rightNeighborT         = temperatureWindow (i, j + 1);
       }
 
       if (i == 0) {
-        bottomHalfTimeNeighborT = temperatureBoundaryWindow (j, 0);
-        bottomNeighborT         = temperatureBoundaryWindow (j, 0);
+        bottomHalfTimeNeighborT = temperatureBoundaryWindow (0, j);
+        bottomNeighborT         = temperatureBoundaryWindow (0, j);
       } else {
-        bottomHalfTimeNeighborT = halfTimeVOffsetTemperatureWindow (j, i - 1);
-        bottomNeighborT         = temperatureWindow (j, i - 1);
+        bottomHalfTimeNeighborT = halfTimeVOffsetTemperatureWindow (i - 1, j);
+        bottomNeighborT         = temperatureWindow (i - 1, j);
       }
 
       if (i == (M - 1)) {
-        topHalfTimeNeighborT = temperatureBoundaryWindow (j, 1);
-        topNeighborT         = temperatureBoundaryWindow (j, 1);
+        topHalfTimeNeighborT = temperatureBoundaryWindow (1, j);
+        topNeighborT         = temperatureBoundaryWindow (1, j);
       } else {
-        topHalfTimeNeighborT = halfTimeVOffsetTemperatureWindow (j, i);
-        topNeighborT         = temperatureWindow (j, i + 1);
+        topHalfTimeNeighborT = halfTimeVOffsetTemperatureWindow (i, j);
+        topNeighborT         = temperatureWindow (i + 1, j);
       }
 
-      halfTimeTemperatureWindow (j, i) =
+      halfTimeTemperatureWindow (i, j) =
         (rightHalfTimeNeighborT + leftHalfTimeNeighborT +
          topHalfTimeNeighborT + bottomHalfTimeNeighborT) / 4 -
-         (diffusionWeight * temperatureWindow (j, i) +
+         (diffusionWeight * temperatureWindow (i, j) +
            leftNeighborT + rightNeighborT + bottomNeighborT + topNeighborT)
          * deltaT * diffusivity / (h * h);
     }
@@ -369,7 +369,7 @@ void ProblemStructure::frommMethod() {
 
   #ifdef DEBUG
     cout << "<Half-Time Temperature Data>" << endl;
-    cout << halfTimeTemperatureWindow.displayMatrix() << endl << endl;
+    halfTimeTemperatureWindow.displayMatrix();
   #endif
 
   // Calculate half-time forcing
@@ -377,31 +377,31 @@ void ProblemStructure::frommMethod() {
     // Benchmark taken from Tau (1991; JCP Vol. 99)
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N - 1; ++j)
-        halfTimeUForcingWindow (j, i) = 3 * cos ((j + 1) * h) * sin ((i + 0.5) * h);
+        halfTimeUForcingWindow (i, j) = 3 * cos ((j + 1) * h) * sin ((i + 0.5) * h);
 
     for (int i = 0; i < M - 1; ++i)
       for (int j = 0; j < N; ++j)
-        halfTimeVForcingWindow (j, i) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
+        halfTimeVForcingWindow (i, j) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
 
   } else if (forcingModel == "solCXBenchmark" ||
              forcingModel == "solKZBenchmark") {
     // solCX Benchmark taken from Kronbichler et al. (2011)
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < N - 1; ++j)
-        halfTimeUForcingWindow (j, i) = 0;
+        halfTimeUForcingWindow (i, j) = 0;
 
     for (int i = 0; i < M - 1; ++i)
       for (int j = 0; j < N; ++j)
-        halfTimeVForcingWindow (j, i) = - sin((i + 0.5) * pi * h) * cos ((j + 1) * pi * h);
+        halfTimeVForcingWindow (i, j) = - sin((i + 0.5) * pi * h) * cos ((j + 1) * pi * h);
 
   } else if (forcingModel == "vorticalFlow") {
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < (N - 1); ++j)
-        halfTimeUForcingWindow (j, i) = 3 * cos ((j + 1) * 2 * h) * sin ((i + 0.5) * 2 * h);
+        halfTimeUForcingWindow (i, j) = 3 * cos ((j + 1) * 2 * h) * sin ((i + 0.5) * 2 * h);
 
     for (int i = 0; i < (M - 1); ++i)
       for (int j = 0; j < N; ++j)
-        halfTimeVForcingWindow (j, i) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
+        halfTimeVForcingWindow (i, j) = -sin ((j + 0.5) * h) * cos ((i + 1) * h);
 
   } else if (forcingModel == "buoyancy") {
     double referenceTemperature;
@@ -420,14 +420,14 @@ void ProblemStructure::frommMethod() {
 
     for (int i = 0; i < M; ++i)
       for (int j = 0; j < (N - 1); ++j)
-        halfTimeUForcingWindow (j, i) = 0;
+        halfTimeUForcingWindow (i, j) = 0;
 
     for (int i = 0; i < (M - 1); ++i)
       for (int j = 0; j < N; ++j) {
-        halfTimeVForcingWindow (j, i) =  -1 * densityConstant *
+        halfTimeVForcingWindow (i, j) =  -1 * densityConstant *
                                           (1 - thermalExpansion *
-                                           ((halfTimeTemperatureWindow (j, i) +
-                                             halfTimeTemperatureWindow (j, i + 1)) / 2 -
+                                           ((halfTimeTemperatureWindow (i, j) +
+                                             halfTimeTemperatureWindow (i + 1, j)) / 2 -
                                             referenceTemperature));
       }
   } else {
@@ -437,9 +437,9 @@ void ProblemStructure::frommMethod() {
   #ifdef DEBUG
     cout << "<Half-Time Forcing Data>" << endl;
     cout << "<Half-Time U Forcing Data>" << endl;
-    cout << halfTimeUForcingWindow.displayMatrix() << endl;
+    halfTimeUForcingWindow.displayMatrix();
     cout << "<Half-Time V Forcing Data>" << endl;
-    cout << halfTimeVForcingWindow.displayMatrix() << endl << endl;
+    halfTimeVForcingWindow.displayMatrix();
   #endif
 
   // Initialize half-time solver
@@ -468,16 +468,16 @@ void ProblemStructure::frommMethod() {
 
     #ifdef DEBUG
       cout << "<Viscosity Data>" << endl;
-      cout << DataWindow<double> (geometry.getViscosityData(), N + 1, M + 1).displayMatrix() << endl << endl;
+      DataWindow<double> (geometry.getViscosityData(), M + 1, N + 1).displayMatrix();
     #endif
   }
 
   #ifdef DEBUG
     cout << "<Velocity Boundary Data>" << endl;
     cout << "<U Velocity Boundary Data>" << endl;
-    cout << uVelocityBoundaryWindow.displayMatrix() << endl;
+    uVelocityBoundaryWindow.displayMatrix();
     cout << "<V Velocity Boundary Data>" << endl;
-    cout << vVelocityBoundaryWindow.displayMatrix() << endl << endl;
+    vVelocityBoundaryWindow.displayMatrix();
   #endif
 
   // Solve stokes at the half-time to find velocities
@@ -487,20 +487,20 @@ void ProblemStructure::frommMethod() {
 
   for (int i = 0; i < M; i++)
     for (int j = 0; j < (N - 1); j++)
-      if (abs(halfTimeUVelocityWindow (j, i)) < 10E-10)
-        halfTimeUVelocityWindow (j, i) = 0;
+      if (abs(halfTimeUVelocityWindow (i, j)) < 10E-10)
+        halfTimeUVelocityWindow (i, j) = 0;
 
   for (int i = 0; i < (M - 1); i++)
     for (int j = 0; j < N; ++j)
-      if (abs (halfTimeVVelocityWindow (j, i)) < 10E-10)
-        halfTimeVVelocityWindow (j, i) = 0;
+      if (abs (halfTimeVVelocityWindow (i, j)) < 10E-10)
+        halfTimeVVelocityWindow (i, j) = 0;
 
   #ifdef DEBUG
     cout << "<Half-Time Velocities>" << endl;
     cout << "<Half-Time U Velocity>" << endl;
-    cout << halfTimeUVelocityWindow.displayMatrix() << endl;
+    halfTimeUVelocityWindow.displayMatrix();
     cout << "<Half-Time V Velocity>" << std::endl;
-    cout << halfTimeVVelocityWindow.displayMatrix() << endl << endl;
+    halfTimeVVelocityWindow.displayMatrix();
   #endif
 
   double leftVelocity, rightVelocity, bottomVelocity, topVelocity;
@@ -512,31 +512,31 @@ void ProblemStructure::frommMethod() {
         leftNeighborT = 0;
         leftVelocity = 0;
       } else {
-        leftNeighborT = halfTimeUOffsetTemperatureWindow (j - 1, i);
-        leftVelocity = halfTimeUVelocityWindow (j - 1, i);
+        leftNeighborT = halfTimeUOffsetTemperatureWindow (i, j - 1);
+        leftVelocity = halfTimeUVelocityWindow (i, j - 1);
       }
       if (j == (N - 1)) {
         rightNeighborT = 0;
         rightVelocity = 0;
       } else {
-        rightNeighborT = halfTimeUOffsetTemperatureWindow (j, i);
-        rightVelocity = halfTimeUVelocityWindow (j, i);
+        rightNeighborT = halfTimeUOffsetTemperatureWindow (i, j);
+        rightVelocity = halfTimeUVelocityWindow (i, j);
       }
 
       if (i == 0) {
         bottomNeighborT = 0;
         bottomVelocity = 0;
       } else {
-        bottomNeighborT = halfTimeVOffsetTemperatureWindow (j, i - 1);
-        bottomVelocity = halfTimeVVelocityWindow (j, i - 1);
+        bottomNeighborT = halfTimeVOffsetTemperatureWindow (i - 1, j);
+        bottomVelocity = halfTimeVVelocityWindow (i - 1, j);
       }
 
       if (i == (M - 1)) {
         topNeighborT = 0;
         topVelocity = 0;
       } else {
-        topNeighborT = halfTimeVOffsetTemperatureWindow (j, i);
-        topVelocity = halfTimeVVelocityWindow (j, i);
+        topNeighborT = halfTimeVOffsetTemperatureWindow (i, j);
+        topVelocity = halfTimeVVelocityWindow (i, j);
       }
 
       // Initialize the flux limiter to point to the desired limiter function.
@@ -562,17 +562,17 @@ void ProblemStructure::frommMethod() {
 
       if (fluxLimiter != "none") {
         leftFirstOrderVelocity   = (j == 0) ?
-                                   uVelocityBoundaryWindow (0, i) :
-                                   uVelocityWindow (j - 1, i);
+                                   uVelocityBoundaryWindow (i, 0) :
+                                   uVelocityWindow (i, j - 1);
         rightFirstOrderVelocity  = (j == (N - 1)) ?
-                                   uVelocityBoundaryWindow (1, i) :
-                                   uVelocityWindow (j, i);
+                                   uVelocityBoundaryWindow (i, 1) :
+                                   uVelocityWindow (i, j);
         bottomFirstOrderVelocity = (i == 0) ?
-                                   vVelocityBoundaryWindow (j, 0) :
-                                   vVelocityWindow (j, i - 1);
+                                   vVelocityBoundaryWindow (0, j) :
+                                   vVelocityWindow (i - 1, j);
         topFirstOrderVelocity    = (i == (M - 1)) ?
-                                   vVelocityBoundaryWindow (j, 1) :
-                                   vVelocityWindow (j, i);
+                                   vVelocityBoundaryWindow (1, j) :
+                                   vVelocityWindow (i, j);
 
         double leftFlux = 0, rightFlux = 0;
         double topFlux = 0, bottomFlux = 0;
@@ -617,7 +617,7 @@ void ProblemStructure::frommMethod() {
         if (i > 1) {
           secondBottomFirstOrderT = temporaryTemperature ((i - 2) * N + j);
         } else {
-          secondBottomFirstOrderT = temperatureBoundaryWindow (j, 0);
+          secondBottomFirstOrderT = temperatureBoundaryWindow (0, j);
         }
 
         if (i < (M - 1)) {
@@ -649,11 +649,11 @@ void ProblemStructure::frommMethod() {
         transverseFlux = ((1 - bottomPhi) * bottomFlux + bottomPhi * bottomVelocity * bottomNeighborT * deltaT / h) -
                          ((1 - topPhi) * topFlux + topPhi * topVelocity * topNeighborT * deltaT / h);
 
-        temperatureWindow (j, i) = temporaryTemperature (i * N + j) + transverseFlux + lateralFlux;
+        temperatureWindow (i, j) = temporaryTemperature (i * N + j) + transverseFlux + lateralFlux;
       } else
-        temperatureWindow (j, i) = temporaryTemperature (i * N + j) + deltaT / h * (leftVelocity * leftNeighborT - rightVelocity * rightNeighborT) + deltaT / h * (bottomVelocity * bottomNeighborT - topVelocity * topNeighborT);
+        temperatureWindow (i, j) = temporaryTemperature (i * N + j) + deltaT / h * (leftVelocity * leftNeighborT - rightVelocity * rightNeighborT) + deltaT / h * (bottomVelocity * bottomNeighborT - topVelocity * topNeighborT);
 
-      if (std::isnan((double)temperatureWindow (j, i))) {
+      if (std::isnan((double)temperatureWindow (i, j))) {
         #ifdef DEBUG
           cout << "<NaN at " << i << "," << j << ">" << endl;
           cout << "<Neighbor values were: " << endl;
@@ -675,6 +675,6 @@ void ProblemStructure::frommMethod() {
 
   #ifdef DEBUG
     cout << "<Full-Time Temperature Data>" << endl;
-    cout << temperatureWindow.displayMatrix() << endl << endl;
+    temperatureWindow.displayMatrix();
   #endif
 }
