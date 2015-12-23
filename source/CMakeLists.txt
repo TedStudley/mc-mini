@@ -1,6 +1,8 @@
 # Specify .cpp files
 set(TARGET_NAME ${PROJECT_NAME})
-set(SRC 
+set(SRC
+  debug/backtrace.cpp
+
   geometry/geometry.cpp
 
   matrixForms/denseForms.cpp
@@ -11,7 +13,7 @@ set(SRC
   parser/paramTree.cpp
   parser/parser.cpp
 
-  problem/advection.cpp 
+  problem/advection.cpp
   problem/diffusion.cpp
   problem/initialization.cpp
   problem/problem.cpp
