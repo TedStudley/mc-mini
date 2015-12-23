@@ -2,7 +2,7 @@
 #include <string>
 #include <map>
 
-#include "parser/parserException.h"
+#include "debug/exception.h"
 #include "parser/paramTree.h"
 
 using namespace std;
@@ -29,13 +29,15 @@ void ParamTree::moveUp (string key) {
 
     focusNode = iter->second;
   } else {
-    throw child_not_found;
-  } 
+    THROW_WITH_TRACE(KeyNotFoundException() <<
+            errmsg_info("Child with key '" + key + "' not found"));
+  }
 }
 
 void ParamTree::moveDown () {
   if (focusNode->parent == NULL) {
-    throw -1;
+    THROW_WITH_TRACE(ParserException() <<
+            errmsg_info("Popped off root of parameter tree"));
   } else {
     focusNode = focusNode->parent;
   }
@@ -45,13 +47,15 @@ string ParamTree::getParam (string key) {
   if (focusNode->params.count (key)) {
     return focusNode->params[key];
   } else {
-    throw param_not_found;
+    THROW_WITH_TRACE(KeyNotFoundException() <<
+            errmsg_info("Param with key '" + key + "' not found"));
   }
 }
 
 void ParamTree::addNode (string key) {
   if (focusNode->children.count (key)) {
-    throw -1;
+    THROW_WITH_TRACE(ParserException() <<
+            errmsg_info("Child with key '" + key + "' already exists"));
   } else {
     ParamNode * newNode = new ParamNode;
     newNode->parent = focusNode;
@@ -65,7 +69,8 @@ void ParamTree::delNode (string key) {
     focusNode->children.erase (key);
     delete match;
   } else {
-    throw child_not_found;
+    THROW_WITH_TRACE(KeyNotFoundException() <<
+            errmsg_info("Child with key '" + key + "' not found"));
   }
 }
 
@@ -78,6 +83,7 @@ void ParamTree::delParam (string key) {
   if (focusNode->params.count (key)) {
     focusNode->params.erase (key);
   } else {
-    throw param_not_found;
+    THROW_WITH_TRACE(KeyNotFoundException() <<
+            errmsg_info("Param with key '" + key + "' not found"));
   }
 }

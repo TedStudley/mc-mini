@@ -1,16 +1,17 @@
 #include <iostream>
-#include <stdexcept>
 
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
+#include "boost/math/constants/constants.hpp"
+
+#include "debug/exception.h"
 #include "matrixForms/sparseForms.h"
 #include "geometry/dataWindow.h"
 #include "geometry/geometry.h"
 #include "problem/problem.h"
 #include "debug.h"
 
-#include "boost/math/constants/constants.hpp"
 const double pi = boost::math::constants::pi<double>();
 
 using namespace Eigen;
@@ -431,7 +432,8 @@ void ProblemStructure::frommMethod() {
                                             referenceTemperature));
       }
   } else {
-    throw std::runtime_error("<Unexpected forcing model: \"" + forcingModel + "\" : Shutting down now>");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("Unexpected forcing model: '" + forcingModel + "'."));
   }
 
   #ifdef DEBUG
@@ -654,21 +656,24 @@ void ProblemStructure::frommMethod() {
         temperatureWindow (j, i) = temporaryTemperature (i * N + j) + deltaT / h * (leftVelocity * leftNeighborT - rightVelocity * rightNeighborT) + deltaT / h * (bottomVelocity * bottomNeighborT - topVelocity * topNeighborT);
 
       if (std::isnan((double)temperatureWindow (j, i))) {
+        std::ostringstream error_stream;
+        error_stream << "Found NaN";
         #ifdef DEBUG
-          cout << "<NaN at " << i << "," << j << ">" << endl;
-          cout << "<Neighbor values were: " << endl;
-          cout << "\tleftNeighborT   = " << leftNeighborT << endl;
-          cout << "\trightNeighborT  = " << rightNeighborT << endl;
-          cout << "\tbottomNeighborT = " << bottomNeighborT << endl;
-          cout << "\ttopNeighborT    = " << topNeighborT << ">" << endl;
-          cout << "<Velocity values were: " << endl;
-          cout << "\tleftVelocity    = " << leftVelocity << endl;
-          cout << "\trightVelocity   = " << rightVelocity << endl;
-          cout << "\tbottomVelocity  = " << bottomVelocity << endl;
-          cout << "\ttopVelocity     = " << topVelocity << ">" << endl;
-          cout << "<Shutting down now!>" << endl;
+          error_stream << endl <<
+              "NaN at " << i << "," << j << "" << endl <<
+              "Neighbor values were: " << endl <<
+              "\tleftNeighborT   = " << leftNeighborT << endl <<
+              "\trightNeighborT  = " << rightNeighborT << endl <<
+              "\tbottomNeighborT = " << bottomNeighborT << endl <<
+              "\ttopNeighborT    = " << topNeighborT << endl <<
+              "Velocity values were: " << endl <<
+              "\tleftVelocity    = " << leftVelocity << endl <<
+              "\trightVelocity   = " << rightVelocity << endl <<
+              "\tbottomVelocity  = " << bottomVelocity << endl <<
+              "\ttopVelocity     = " << topVelocity;
         #endif
-        throw "found NaN";
+        THROW_WITH_TRACE(RuntimeError() <<
+                errmsg_info(error_stream.str()));
       }
     }
   }

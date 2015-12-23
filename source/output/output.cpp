@@ -2,10 +2,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <stdexcept>
 
 #include "boost/lexical_cast.hpp"
 
+#include "debug/exception.h"
 #include "geometry/dataWindow.h"
 #include "geometry/geometry.h"
 #include "problem/problem.h"
@@ -37,7 +37,8 @@ OutputStructure::OutputStructure (ParamParser&       pp,
   if (system(s) != 0) {
     sprintf(s, "mkdir %s", outputPath.c_str());
     if (system(s) != 0) {
-      throw std::runtime_error("<Error: couldn't create directory " + outputPath + ">");
+      THROW_WITH_TRACE(RuntimeError() <<
+              errmsg_info("Couldn't create directory '" + outputPath + "'."));
     }
   }
 
@@ -60,7 +61,8 @@ void OutputStructure::outputData (const int timestep) {
   if (outputFormat == "hdf5") {
     this->writeHDF5File (timestep);
   } else {
-    throw std::invalid_argument("Unknown output format " + outputFormat + " specified in parameters. Shutting down now.");
+    THROW_WITH_TRACE(InvalidArgument() <<
+            errmsg_info("Unknown output format '" + outputFormat + "' specified in parameters."));
   }
 }
 
@@ -92,7 +94,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
   status = H5Tset_order (datatype, H5T_ORDER_LE);
 
   if (status == -1) {
-      throw std::runtime_error("<H5Tset_order failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Tset_order failed"));
   }
 
   // Write temperature
@@ -103,7 +106,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, geometry.getTemperatureData());
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"Temperature\" AttributeType=\"Scalar\" Center=\"Cell\">" << endl
@@ -119,7 +123,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, geometry.getPressureData());
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"Pressure\" AttributeType=\"Scalar\" Center=\"Cell\">" << endl
@@ -156,7 +161,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, interpolatedUVelocityData);
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"UVelocity\" AttributeType=\"Scalar\" Center=\"Cell\">" << endl
@@ -193,7 +199,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, interpolatedVVelocityData);
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"VVelocity\" AttributeType=\"Scalar\" Center=\"Cell\">" << endl
@@ -236,7 +243,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, velocityDivergenceData);
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed::" + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"Divergence\" AttributeType=\"Scalar\" Center=\"Cell\">" << endl
@@ -252,7 +260,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
   status = H5Tset_order (datatype, H5T_ORDER_LE);
 
   if (status == -1) {
-      throw std::runtime_error("<H5Tset_order failed:: " + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Tset_order failed"));
   }
 
   // Write Viscosity
@@ -263,7 +272,8 @@ void OutputStructure::writeHDF5File (const int timestep) {
                      H5P_DEFAULT, geometry.getViscosityData());
 
   if (status == -1) {
-      throw std::runtime_error("<H5Dwrite failed:: " + boost::lexical_cast<std::string>(__FILE__) + ":" + boost::lexical_cast<std::string>(__LINE__) + ">");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("H5Dwrite failed"));
   }
 
   problemXdmfFile << "        <Attribute Name=\"Viscosity\" AttributeType=\"Scalar\" Center=\"Node\">" << endl
