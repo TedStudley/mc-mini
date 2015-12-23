@@ -6,7 +6,9 @@ env:
 
 compiler:
   - gcc
-  - clang
+  # Clang compilation with Boost is currently broken for the version of Boost available on TravisCI. See:
+  # http://stackoverflow.com/questions/11302758/error-while-copy-constructing-boostshared-ptr-using-c11
+  # - clang
 
 cache:
   apt: true
