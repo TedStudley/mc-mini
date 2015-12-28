@@ -1,20 +1,20 @@
-#include <exception>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <stdexcept>
 
+#include "debug/exception.h"
 #include "parser/paramTree.h"
 #include "parser/parser.h"
 
 using namespace std;
 
 ParamParser::ParamParser (const string paramFile) {
-
   ifstream paramStream(paramFile);
+
   if (paramStream.fail()) {
-    throw std::runtime_error("<Error> Opening parameter file \"" + paramFile + "\" failed! Shutting down now.");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("Opening parameter file '" + paramFile + "' failed."));
   }
   string lineBuf;
   vector<string> parseBuf, paramBuf;
@@ -32,7 +32,7 @@ ParamParser::ParamParser (const string paramFile) {
         parseBuf = stringSplit(lineBuf ,"=");
       }
       paramBuf = stringSplit(parseBuf[0]);
-   
+
       if (paramBuf[0] == "set") {
         treeBase->addParam (paramBuf[1], parseBuf[1]);
       } else if (paramBuf[0] == "enter") {
@@ -47,7 +47,7 @@ ParamParser::ParamParser (const string paramFile) {
       }
     }
 
-    parseBuf.clear (); paramBuf.clear (); 
+    parseBuf.clear (); paramBuf.clear ();
     getline (paramStream, lineBuf);
   }
   cerr << "Parameter tree built!" << endl << endl;

@@ -1,10 +1,12 @@
 #include <iostream>
 #include <cmath>
-#include <stdexcept>
 
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
+#include "boost/math/constants/constants.hpp"
+
+#include "debug/exception.h"
 #include "debug.h"
 
 #ifndef USE_DENSE
@@ -17,7 +19,6 @@
 #include "problem/problem.h"
 #include "parser/parser.h"
 
-#include "boost/math/constants/constants.hpp"
 const double pi = boost::math::constants::pi<double>();
 
 using namespace Eigen;
@@ -99,7 +100,8 @@ void ProblemStructure::updateForcingTerms() {
                                       referenceTemperature));
       }
   } else {
-    throw std::runtime_error("<Unexpected forcing model: \"" + forcingModel + "\" : Shutting down now>");
+    THROW_WITH_TRACE(RuntimeError() <<
+            errmsg_info("Unexpected forcing model: '" + forcingModel + "'."));
   }
 
   #ifdef DEBUG
@@ -184,7 +186,8 @@ void ProblemStructure::solveAdvectionDiffusion() {
     frommMethod();
   } else if (advectionMethod == "none") {
   } else {
-    throw std::runtime_error("<Unexpected advection method: \"" + advectionMethod + "\" : Shutting down now>");
+    THROW_WITH_TRACE(RuntimeError()
+            << errmsg_info("Unexpected advection method: '" + advectionMethod + "'."));
   }
 
   #ifdef DEBUG
@@ -198,7 +201,8 @@ void ProblemStructure::solveAdvectionDiffusion() {
     crankNicolson();
   } else if (diffusionMethod == "none") {
   } else {
-    throw std::runtime_error("<Unexpected diffusion method: \"" + diffusionMethod + "\" : Shutting down now>");
+    THROW_WITH_TRACE(RuntimeError()
+            << errmsg_info("Unexpected diffusion method: '" + diffusionMethod + "'."));
   }
 
   #ifdef DEBUG

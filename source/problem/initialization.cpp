@@ -1,14 +1,15 @@
 #include <iostream>
 #include <cmath>
-#include <stdexcept>
 
+#include "boost/math/constants/constants.hpp"
+
+#include "debug/exception.h"
 #include "geometry/dataWindow.h"
 #include "geometry/geometry.h"
 #include "problem/problem.h"
 #include "parser/parser.h"
 #include "debug.h"
 
-#include "boost/math/constants/constants.hpp"
 const double pi = boost::math::constants::pi<double>();
 
 /*
@@ -109,7 +110,8 @@ void ProblemStructure::initializeTemperature() {
            temperatureWindow (j, i) = referenceTemperature;
        }
   } else {
-    throw std::invalid_argument("<Unexpected temperature model: \"" + temperatureModel + "\" : Shutting down now>");
+    THROW_WITH_TRACE(InvalidArgument() <<
+            errmsg_info("Unexpected temperature model: '" + temperatureModel + "'"));
   }
 
   #ifdef DEBUG
@@ -164,7 +166,8 @@ void ProblemStructure::initializeVelocityBoundary() {
       for (int j = 0; j < N; ++j)
         vVelocityBoundaryWindow (j, i) = 0;
   } else {
-    throw std::invalid_argument("<Unexpected boundary model: \"" + boundaryModel + "\" : Shutting down now>");
+    THROW_WITH_TRACE(InvalidArgument() <<
+            errmsg_info("Unexpected boundary model: '" + boundaryModel + "'"));
   }
 
   #ifdef DEBUG
@@ -207,7 +210,8 @@ void ProblemStructure::initializeViscosity() {
       for (int j = 0; j < (N + 1); ++j)
         viscosityWindow (j, i) = 1.0 + j * h * 1.0E06;
   } else {
-    throw std::invalid_argument("Unexpected viscosity model: \"" + viscosityModel + "\" : Shutting down now!");
+    THROW_WITH_TRACE(InvalidArgument() <<
+            errmsg_info("Unexpected viscosity model: '" + viscosityModel + "'"));
   }
 
   #ifdef DEBUG
