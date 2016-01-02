@@ -9,27 +9,36 @@
 #include "geometry/dataWindow.h"
 #include "geometry/geometry.h"
 #include "problem/problem.h"
-#include "parser/parser.h"
+#include "params.h"
 #include "output/output.h"
 
 using namespace std;
 
-OutputStructure::OutputStructure (ParamParser&       pp,
-                                  GeometryStructure& gs,
-                                  ProblemStructure&  ps) :
-    parser   (pp),
+OutputStructure::OutputStructure (Params            &p,
+                                  GeometryStructure &gs,
+                                  ProblemStructure  &ps) :
+    params   (p),
     geometry (gs),
     problem  (ps) {
   M  = geometry.getM();
   N  = geometry.getN();
   dx = problem.getH();
 
-  if (parser.push ("outputParams")) {
-    parser.queryParamString ("outputFormat", outputFormat, string("hdf5"));
-    parser.queryParamString ("outputPath", outputPath, string("."));
-    parser.queryParamString ("outputFilename", outputFilename, string("output"));
+  params.push ("outputParams"); {
+    params.queryParam<std::string>(
+            "outputFormat",
+            outputFormat,
+            "hdf5");
+    params.queryParam<std::string>(
+            "outputPath",
+            outputPath,
+            ".");
+    params.queryParam<std::string>(
+            "outputFilename",
+            outputFilename,
+            "output");
 
-    parser.pop();
+    params.pop();
   }
 
   char s[128];

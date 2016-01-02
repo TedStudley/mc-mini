@@ -13,7 +13,7 @@
 // Functions and data structures related to the output of the solution data.
 #include "output/output.h"
 // Functions and data structures related to the parser of parameter files.
-#include "parser/parser.h"
+#include "params/paramParser.h"
 
 int main(int argc, char ** argv) {
   // Install the segfault handler with backtrace
@@ -27,13 +27,17 @@ int main(int argc, char ** argv) {
     }
 
     // Initialize the parser with the specified parameter file.
-    ParamParser parser(static_cast<std::string>(argv[1]));
+    ParamParser pp;
+    pp.load(static_cast<std::string>(argv[1]));
+
+    // Get the parameter values from the parser
+    Params params = pp.getParams();
+
     // Initialize geometry parameters.
-    GeometryStructure geometry (parser);
-    // Initialize parameters related to the implementation of the employed numerical method.
-    ProblemStructure  problem  (parser, geometry);
+    GeometryStructure geometry (params);
+    ProblemStructure  problem  (params, geometry);
     // Initialize parameters related to output structure.
-    OutputStructure   output   (parser, geometry, problem);
+    OutputStructure   output   (params, geometry, problem);
 
     // Initialize the initial data for the problem to be solved.
     problem.initializeProblem();

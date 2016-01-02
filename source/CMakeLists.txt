@@ -10,8 +10,10 @@ set(SRC
 
   output/output.cpp
 
-  parser/paramTree.cpp
-  parser/parser.cpp
+  params.cpp
+  params/paramBuilder.cpp
+  params/paramParser.cpp
+  params/paramTree.cpp
 
   problem/advection.cpp
   problem/diffusion.cpp

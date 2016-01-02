@@ -1,3 +1,5 @@
+#pragma once
+
 #define THROW_WITH_TRACE(ex) \
     BOOST_THROW_EXCEPTION( ex << trace_info(get_backtrace()) )
 

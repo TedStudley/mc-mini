@@ -1,5 +1,5 @@
 #include "geometry/geometry.h"
-#include "parser/parser.h"
+#include "params.h"
 
 /** @brief Constructs the GeometryStructure from parameters.
  *
@@ -12,14 +12,15 @@
  *  geometryParams | M | int | The number of rows in the underlying representation of the problem domain (*required*)
  *  geometryParams | N | int | The number of columns in the underlying representation of the problem domain (*required*)
  */
-GeometryStructure::GeometryStructure (ParamParser& parser) {
+GeometryStructure::GeometryStructure (Params &params) {
   // Grab the parameters from the required 'geometryParams' section
-  if (parser.push ("geometryParams")) {
-    // Read the number of rows (M) and columns (N)
-    parser.getParamInt ("M", M);
-    parser.getParamInt ("N", N);
+  params.push("geometryParams"); {
+    // Read the number of rows (M)
+    params.getParam<int>("M", M);
+    // Read the number of columns (N)
+    params.getParam<int>("N", N);
 
-    parser.pop();
+    params.pop();
   }
 
 

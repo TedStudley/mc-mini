@@ -7,7 +7,7 @@
 #include "geometry/dataWindow.h"
 #include "geometry/geometry.h"
 #include "problem/problem.h"
-#include "parser/parser.h"
+#include "params.h"
 #include "debug.h"
 
 const double pi = boost::math::constants::pi<double>();
@@ -42,14 +42,20 @@ void ProblemStructure::initializeTemperature() {
   double referenceTemperature;
   double temperatureScale;
 
-  if (parser.push ("problemParams")) {
-    if (parser.push ("initialTemperatureParams")) {
-      parser.queryParamDouble ("referenceTemperature", referenceTemperature, 273.15);
-      parser.queryParamDouble ("temperatureScale",     temperatureScale,     100.0);
+  params.push("problemParams"); {
+    params.push("initialTemperatureParams"); {
+      params.queryParam<double>(
+              "referenceTemperature",
+              referenceTemperature,
+              273.15);
+      params.queryParam<double>(
+              "temperatureScale",
+              temperatureScale,
+              100.0);
 
-      parser.pop();
+      params.pop();
     }
-    parser.pop();
+    params.pop();
   }
 
   if (temperatureModel == "constant") {
@@ -62,15 +68,14 @@ void ProblemStructure::initializeTemperature() {
     int xModes;
     int yModes;
 
-    if (parser.push ("problemParams")) {
-      if (parser.tryPush ("initialTemperatureParams")) {
-        parser.queryParamInt ("xModes", xModes, 2);
-        parser.queryParamInt ("yModes", yModes, 2);
+    params.push("problemParams"); {
+      params.tryPush("initialTemperatureParams"); {
+        params.queryParam<int>("xModes", xModes, 2);
+        params.queryParam<int>("yModes", yModes, 2);
 
-        parser.pop();
+        params.pop();
       }
-
-      parser.pop();
+      params.pop();
     }
 
     for (int i = 0; i < M; ++i)
@@ -92,14 +97,15 @@ void ProblemStructure::initializeTemperature() {
      double center_x;
      double center_y;
      double radius;
-     if (parser.push ("problemParams")) {
-       if (parser.tryPush ("initialTemperatureParams")) {
-         parser.getParamDouble ("radius", radius);
-         parser.getParamDouble ("xCenter", center_x);
-         parser.getParamDouble ("yCenter", center_y);
-         parser.pop();
+     params.push("problemParams"); {
+       params.tryPush("initialTemperatureParams"); {
+         params.getParam<double>("radius", radius);
+         params.getParam<double>("xCenter", center_x);
+         params.getParam<double>("yCenter", center_y);
+
+         params.pop();
        }
-       parser.pop();
+       params.pop();
      }
 
      for (int i = 0; i < M; ++i)
@@ -127,15 +133,14 @@ void ProblemStructure::initializeTemperatureBoundary() {
   double upperTemperature;
   double lowerTemperature;
 
-  if (parser.push ("problemParams")) {
-    if (parser.push ("temperatureBoundaryParams")) {
-      parser.getParamDouble ("upperBoundaryTemperature", upperTemperature);
-      parser.getParamDouble ("lowerBoundaryTemperature", lowerTemperature);
+  params.push("problemParams"); {
+    params.push("temperatureBoundaryParams"); {
+      params.getParam<double>("upperBoundaryTemperature", upperTemperature);
+      params.getParam<double>("lowerBoundaryTemperature", lowerTemperature);
 
-      parser.pop();
+      params.pop();
     }
-
-    parser.pop();
+    params.pop();
   }
 
   for (int j = 0; j < N; ++j) {
@@ -185,15 +190,13 @@ void ProblemStructure::initializeViscosity() {
   double viscosity;
 
   if (viscosityModel == "constant") {
-    if (parser.push ("problemParams")) {
-      if (parser.tryPush ("initialViscosity")) {
-        parser.queryParamDouble ("viscosityScale", viscosity, 1.0);
+    params.push("problemParams"); {
+      params.tryPush("initialViscosity"); {
+        params.queryParam<double>("viscosityScale", viscosity, 1.0);
 
-        parser.pop();
-      } else {
-        viscosity = 1.0;
+        params.pop();
       }
-      parser.pop();
+      params.pop();
     }
 
     for (int i = 0; i < (M + 1); ++i)

@@ -3,7 +3,9 @@
 #include <limits>
 #include <cmath>
 
-#include "parser/parser.h"
+#include "params.h"
+
+using namespace std;
 
 /*! ProblemStructure holds all of the specific details and routines for the
  *  current problem which would be out-of-place in the GeometryStructure.
@@ -17,7 +19,7 @@ class ProblemStructure {
      *  Construct the ProblemStructure object with a reference to the 
      *  ParamParser and GeometryStructure objects.
      */
-    ProblemStructure (ParamParser& pp, GeometryStructure& gs);
+    ProblemStructure (Params &p, GeometryStructure &gs);
 
     /** Initialize the problem. 
      *  This includes initializing the timestep, setting the initial viscosity,
@@ -109,8 +111,8 @@ class ProblemStructure {
     int getTimestepNumber();
 
   private:
-    ParamParser& parser;
-    GeometryStructure& geometry;
+    Params            &params;
+    GeometryStructure &geometry;
 
     string forcingModel;
     string temperatureModel;
