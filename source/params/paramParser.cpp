@@ -24,7 +24,7 @@ void ParamParser::parse(std::istream &paramStream) {
   std::string lineBuf;
   std::vector<std::string> parseBuf, paramBuf;
 
-  this->treeBase = new ParamTree;
+  _result = new ParamTree;
 
   getline(paramStream, lineBuf);
 
@@ -39,12 +39,12 @@ void ParamParser::parse(std::istream &paramStream) {
       paramBuf = stringSplit(parseBuf[0]);
 
       if (paramBuf[0] == "set") {
-        treeBase->addParam(paramBuf[1], parseBuf[1]);
+        _result->addParam(paramBuf[1], parseBuf[1]);
       } else if (paramBuf[0] == "enter") {
-        treeBase->addNode(paramBuf[1]);
-        treeBase->moveUp(paramBuf[1]);
+        _result->addNode(paramBuf[1]);
+        _result->moveUp(paramBuf[1]);
       } else if (paramBuf[0] == "leave") {
-        treeBase->moveDown();
+        _result->moveDown();
       } else if (paramBuf[0][0] == '#') {
         // Do nothing
       } else {

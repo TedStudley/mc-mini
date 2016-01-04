@@ -20,6 +20,8 @@
 class Params {
 public:
   Params();
+  Params(ParamTree *treeBase);
+
   ~Params();
 
   /**

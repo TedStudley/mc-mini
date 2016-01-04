@@ -11,7 +11,6 @@ set(SRC
   output/output.cpp
 
   params.cpp
-  params/paramBuilder.cpp
   params/paramParser.cpp
   params/paramTree.cpp
 

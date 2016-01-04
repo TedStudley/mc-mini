@@ -4,6 +4,9 @@
 Params::Params() :
     treeBase(new ParamTree) {}
 
+Params::Params(ParamTree *paramTree) :
+    treeBase(paramTree) {}
+
 Params::~Params() {
   delete treeBase;
 }

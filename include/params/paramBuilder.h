@@ -9,7 +9,12 @@
  * constructing a (temporarily hidden) set of parameters, which may be
  * accessed via the `getParams` method.
  */
-class ParamBuilder : protected Params {
+class ParamBuilder {
 public:
-  virtual Params &getParams();
+  Params &getParams() {
+    return (*new Params(_result));
+  };
+
+protected:
+  ParamTree *_result = nullptr;
 };
