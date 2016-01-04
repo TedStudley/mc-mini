@@ -8,7 +8,8 @@
 
 TEST(ParamParserTest, can_parse_example_params) {
   boost::filesystem::path params_path =
-      boost::filesystem::system_complete("../../exampleParameters");
+      boost::filesystem::system_complete(__FILE__)
+          .parent_path().parent_path() / "exampleParameters";
 
   ParamParser pp;
   ASSERT_NO_THROW(pp.load(params_path.string()));
