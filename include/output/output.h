@@ -4,24 +4,26 @@
 
 #include "geometry/geometry.h"
 #include "problem/problem.h"
-#include "parser/parser.h"
+#include "params.h"
+
+using namespace std;
 
 class OutputStructure {
   public:
-    OutputStructure (ParamParser&       pp,
-                     GeometryStructure& gs,
-                     ProblemStructure&  ps);
+    OutputStructure (Params            &p,
+                     GeometryStructure &gs,
+                     ProblemStructure  &ps);
 
     ~OutputStructure();
 
     void outputData (const int timestep = 0);
 
     void writeHDF5File (const int timestep = 0);
-  
+
   private:
-    ParamParser&       parser;
-    GeometryStructure& geometry;
-    ProblemStructure&  problem;
+    Params            &params;
+    GeometryStructure &geometry;
+    ProblemStructure  &problem;
 
     int M;
     int N;

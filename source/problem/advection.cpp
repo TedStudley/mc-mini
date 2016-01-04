@@ -409,14 +409,26 @@ void ProblemStructure::frommMethod() {
     double densityConstant;
     double thermalExpansion;
 
-    if (parser.push ("problemParams")) {
-      if (parser.push ("buoyancyModelParams")) {
-        parser.queryParamDouble ("referenceTemperature", referenceTemperature, 273.15);
-        parser.queryParamDouble ("densityConstant",      densityConstant,      100.0);
-        parser.queryParamDouble ("thermalExpansion",     thermalExpansion,       1.0);
-        parser.pop();
+    params.push ("problemParams"); {
+      params.push ("buoyancyModelParams"); {
+        params.queryParam<double>(
+                "referenceTemperature",
+                referenceTemperature,
+                273.15);
+
+        params.queryParam<double>(
+                "densityConstant",
+                densityConstant,
+                100.0);
+
+        params.queryParam<double>(
+                "thermalExpansion",
+                thermalExpansion,
+                1.0);
+
+        params.pop();
       }
-      parser.pop();
+      params.pop();
     }
 
     for (int i = 0; i < M; ++i)

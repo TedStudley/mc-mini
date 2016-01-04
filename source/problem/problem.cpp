@@ -10,15 +10,14 @@
 
 #include "geometry/geometry.h"
 #include "problem/problem.h"
-#include "parser/parser.h"
+#include "params.h"
 #include "debug.h"
 
 using namespace Eigen;
 using namespace std;
 
-ProblemStructure::ProblemStructure 
-    (ParamParser&       pp,
-     GeometryStructure& gs) :
+ProblemStructure::ProblemStructure(Params &p,
+                                   GeometryStructure &gs) :
   /** References to the ParamParser and GeometryStructure objects created
    *  in main() allow ProblemStructure to ask the ParamParser and
    *  GeometryStructure for information it would not otherwise have access to,
@@ -26,7 +25,7 @@ ProblemStructure::ProblemStructure
    *  arrays, and values of parameters from the parameter file passed in by the
    *  user. 
    */
-    parser (pp),
+    params   (p),
     geometry (gs) {
   /** The majority of calls to the shared GeometryStructure object come from
    *  requests for the pointers to data in memory, but access to
@@ -54,19 +53,31 @@ ProblemStructure::ProblemStructure
    *  by using multiple ParamParser::push and ParamParser::pop calls
    *  elsewhere in the code.
    */
-  if (parser.push ("problemParams")) {
-    parser.getParamDouble   ("cfl",              cfl);
+  params.push("problemParams"); {
+    params.getParam<double>("cfl", cfl);
 
-    parser.getParamDouble   ("startTime",        time);
-    parser.queryParamDouble ("endTime",          endTime, std::numeric_limits<int>::max());
-    parser.queryParamInt    ("endStep",          endStep, std::numeric_limits<int>::max());
+    params.getParam<double>("startTime", time);
+    params.queryParam<double>(
+            "endTime",
+            endTime,
+            std::numeric_limits<int>::max());
+    params.queryParam<int>(
+            "endStep",
+            endStep,
+            std::numeric_limits<int>::max());
     timestepNumber = 0;
 
-    parser.queryParamDouble ("xExtent",          xExtent, 0.0);
-    parser.queryParamDouble ("yExtent",          yExtent, 0.0);
-    
+    params.queryParam<double>(
+            "xExtent",
+            xExtent,
+            0.0);
+    params.queryParam<double>(
+            "yExtent",
+            yExtent,
+            0.0);
+
     assert (((xExtent == 0) ^ (yExtent == 0)));
-    
+
     if (xExtent == 0) {
       h      = yExtent / double(M);
       xExtent = h * double(N);
@@ -75,24 +86,49 @@ ProblemStructure::ProblemStructure
       yExtent = h * double(M);
     }
 
-    parser.getParamDouble   ("diffusivity",      diffusivity);
+    params.getParam<double>("diffusivity", diffusivity);
 
-    parser.queryParamString ("forcingModel",     forcingModel,     "tauBenchmark");
-    parser.queryParamString ("temperatureModel", temperatureModel, "constant");
-    parser.queryParamString ("viscosityModel",   viscosityModel,   "constant");
-    parser.queryParamString ("boundaryModel",    boundaryModel,    "tauBenchmark");
-    
-    parser.queryParamString ("advectionMethod",  advectionMethod,  "upwindMethod");
-    if (parser.push ("advectionParams")) {
-      parser.queryParamString ("fluxLimiter",      fluxLimiter,      "vanLeer");
-      
-      parser.pop();
+    params.queryParam<std::string>(
+            "forcingModel",
+            forcingModel,
+            "tauBenchmark");
+    params.queryParam<std::string>(
+            "temperatureModel",
+            temperatureModel,
+            "constant");
+    params.queryParam<std::string>(
+            "viscosityModel",
+            viscosityModel,
+            "constant");
+    params.queryParam<std::string>(
+            "boundaryModel",
+            boundaryModel,
+            "tauBenchmark");
+
+    params.queryParam<std::string>(
+            "advectionMethod",
+            advectionMethod,
+            "upwindMethod");
+    params.push("advectionParams"); {
+      params.queryParam<std::string>(
+              "fluxLimiter",
+              fluxLimiter,
+              "vanLeer");
+
+      params.pop();
     }
-    parser.queryParamString ("diffusionMethod",  diffusionMethod,  "backwardEuler");
 
-    parser.queryParamString ("outputFile",       outputFile,       "output.h5");
+    params.queryParam<std::string>(
+            "diffusionMethod",
+            diffusionMethod,
+            "backwardEuler");
 
-    parser.pop();
+    params.queryParam<std::string>(
+            "outputFile",
+            outputFile,
+            "output.h5");
+
+    params.pop();
   }
 }
 

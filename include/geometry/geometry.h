@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parser/parser.h"
+#include "params.h"
 
 /** \brief A simple wrapper class for geometry-specific data
  *
@@ -11,7 +11,7 @@
  */
 class GeometryStructure {
   public:
-    GeometryStructure(ParamParser& pp);
+    GeometryStructure(Params& params);
     ~GeometryStructure();
 
     // The number of rows in the geometry
